@@ -532,7 +532,6 @@
         const weekdays = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"];
         let shoppingCount = 0;
         let currentWeekData = null;
-        let isChangingDate = false;
 
         // Sæt standard dato til denne mandag
         function getMonday(d) {
@@ -573,25 +572,29 @@
             }
         }
 
+        // Ryd alt i nuværende uge
+        function clearCurrentWeek() {
+            currentWeekData = null;
+            document.getElementById('shoppingContainer').innerHTML = '';
+            shoppingCount = 0;
+            document.getElementById('weekInfoContainer').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('invoice').style.display = 'none';
+            renderWeeklyEaters();
+        }
+
         // Når ugedato ændres
         function onWeekDateChange() {
-            if (isChangingDate) return;
-
             const weekStart = document.getElementById('weekStart').value;
             const weekKey = 'week_' + weekStart;
             const existingData = localStorage.getItem(weekKey);
 
             if (existingData) {
+                // Ugen findes - indlæs den
                 loadWeek(weekKey, false);
             } else {
-                // Ny uge - ryd felter
-                currentWeekData = null;
-                document.getElementById('shoppingContainer').innerHTML = '';
-                shoppingCount = 0;
-                renderWeeklyEaters();
-                document.getElementById('weekInfoContainer').innerHTML = '';
-                document.getElementById('summary').style.display = 'none';
-                document.getElementById('invoice').style.display = 'none';
+                // Ny uge - ryd alt
+                clearCurrentWeek();
             }
         }
 
@@ -920,7 +923,6 @@
             const data = JSON.parse(localStorage.getItem(weekKey));
             if (!data) return;
 
-            isChangingDate = true;
             document.getElementById('weekStart').value = data.weekStart;
 
             // Ryd og tilføj indkøb
@@ -934,8 +936,6 @@
             currentWeekData = data;
             renderWeeklyEaters();
             showWeekInfo(data);
-
-            isChangingDate = false;
 
             if (showAlert) {
                 alert('✅ Uge indlæst!');
