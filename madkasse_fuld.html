@@ -380,6 +380,24 @@
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
+        .week-info {
+            background: #e8f8f5;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .week-info h4 {
+            color: #27ae60;
+            margin-top: 0;
+        }
+        .week-info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .week-info li {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -399,11 +417,13 @@
 
             <div class="week-selector">
                 <label for="weekStart">Uge starter:</label>
-                <input type="date" id="weekStart">
+                <input type="date" id="weekStart" onchange="onWeekDateChange()">
                 <select id="weekSelect" onchange="loadWeek(this.value)">
                     <option value="">Vælg eksisterende uge...</option>
                 </select>
             </div>
+
+            <div id="weekInfoContainer"></div>
 
             <button class="add-shopping-btn" onclick="addShoppingEntry()">➕ Tilføj indkøb</button>
 
@@ -457,7 +477,7 @@
 
             <div class="week-selector">
                 <label for="nextWeekStart">Næste uge starter:</label>
-                <input type="date" id="nextWeekStart">
+                <input type="date" id="nextWeekStart" onchange="renderSignup()">
             </div>
 
             <div class="signup-section">
@@ -512,6 +532,7 @@
         const weekdays = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"];
         let shoppingCount = 0;
         let currentWeekData = null;
+        let isChangingDate = false;
 
         // Sæt standard dato til denne mandag
         function getMonday(d) {
@@ -550,6 +571,50 @@
             if (tabName === 'settings') {
                 loadPeople();
             }
+        }
+
+        // Når ugedato ændres
+        function onWeekDateChange() {
+            if (isChangingDate) return;
+
+            const weekStart = document.getElementById('weekStart').value;
+            const weekKey = 'week_' + weekStart;
+            const existingData = localStorage.getItem(weekKey);
+
+            if (existingData) {
+                loadWeek(weekKey, false);
+            } else {
+                // Ny uge - ryd felter
+                currentWeekData = null;
+                document.getElementById('shoppingContainer').innerHTML = '';
+                shoppingCount = 0;
+                renderWeeklyEaters();
+                document.getElementById('weekInfoContainer').innerHTML = '';
+                document.getElementById('summary').style.display = 'none';
+                document.getElementById('invoice').style.display = 'none';
+            }
+        }
+
+        // Vis uge-info (tilmeldte dage)
+        function showWeekInfo(weekData) {
+            const container = document.getElementById('weekInfoContainer');
+
+            if (!weekData || !weekData.eaters) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="week-info"><h4>📊 Tilmeldte dage denne uge:</h4><ul>';
+
+            people.forEach(person => {
+                const days = weekData.eaters[person] || [];
+                const dayCount = days.length;
+                const dayText = days.length > 0 ? days.join(', ') : 'Ikke tilmeldt';
+                html += `<li><strong>${person}:</strong> ${dayCount} dage (${dayText})</li>`;
+            });
+
+            html += '</ul></div>';
+            container.innerHTML = html;
         }
 
         // Generér ugentlig deltagerliste
@@ -813,12 +878,16 @@
             // Opdater ugeliste
             updateWeekSelect();
 
+            // Opdater uge-info
+            showWeekInfo(weekData);
+
             alert('✅ Uge gemt!');
         }
 
         // Opdater uge-vælger
         function updateWeekSelect() {
             const select = document.getElementById('weekSelect');
+            const currentValue = select.value;
             select.innerHTML = '<option value="">Vælg eksisterende uge...</option>';
 
             const weeks = [];
@@ -840,15 +909,18 @@
                 option.textContent = `${weekNum} - Starter ${date.toLocaleDateString('da-DK')}`;
                 select.appendChild(option);
             });
+
+            select.value = currentValue;
         }
 
         // Indlæs uge
-        function loadWeek(weekKey) {
+        function loadWeek(weekKey, showAlert = true) {
             if (!weekKey) return;
 
             const data = JSON.parse(localStorage.getItem(weekKey));
             if (!data) return;
 
+            isChangingDate = true;
             document.getElementById('weekStart').value = data.weekStart;
 
             // Ryd og tilføj indkøb
@@ -861,8 +933,13 @@
             // Indsaml eaters
             currentWeekData = data;
             renderWeeklyEaters();
+            showWeekInfo(data);
 
-            alert('✅ Uge indlæst!');
+            isChangingDate = false;
+
+            if (showAlert) {
+                alert('✅ Uge indlæst!');
+            }
         }
 
         // Render signup
