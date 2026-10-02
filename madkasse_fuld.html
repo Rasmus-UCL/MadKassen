@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madkasse - Med historik og tilmelding</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 12px 20px;
+            background: #ecf0f1;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover {
+            background: #d5dbdb;
+        }
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .week-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .week-selector label {
+            font-weight: bold;
+        }
+        .week-selector input {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .week-selector select {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            background: white;
+        }
+        .shopping-entry {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            background: #ebf5fb;
+        }
+        .shopping-entry h3 {
+            margin-top: 0;
+            color: #2980b9;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .person-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .person-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .person-checkbox:hover {
+            background: #e8f4f8;
+            border-color: #3498db;
+        }
+        .person-checkbox input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        .amount-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .notes-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 10px 0;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .add-shopping-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .add-shopping-btn:hover {
+            background: #7f8c8d;
+        }
+        .calculate-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .calculate-btn:hover {
+            background: #2980b9;
+        }
+        .invoice-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .invoice-btn:hover {
+            background: #229954;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f8f5;
+            border-radius: 8px;
+            border: 2px solid #27ae60;
+        }
+        .summary h2 {
+            color: #27ae60;
+            margin-top: 0;
+        }
+        .person-balance {
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .positive {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .negative {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .invoice {
+            margin-top: 30px;
+            padding: 30px;
+            background: white;
+            border: 2px solid #2c3e50;
+            border-radius: 8px;
+        }
+        .invoice h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .invoice-table th {
+            background: #34495e;
+            color: white;
+        }
+        .invoice-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .shopping-list {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fef9e7;
+            border-radius: 5px;
+            border: 1px solid #f1c40f;
+        }
+        .shopping-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-left: 4px solid #f39c12;
+            border-radius: 3px;
+        }
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+        .signup-section {
+            background: #fef5e7;
+            border: 2px solid #f39c12;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        .signup-section h3 {
+            color: #d68910;
+            margin-top: 0;
+        }
+        .signup-person {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #f1c40f;
+        }
+        .signup-person label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .signup-days {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .signup-days label {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .signup-days input {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+        }
+        .save-signup-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .save-signup-btn:hover {
+            background: #d68910;
+        }
+        .history-week {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .history-week h4 {
+            color: #3498db;
+            margin-top: 0;
+            border-bottom: 1px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .history-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .history-person {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .history-person strong {
+            color: #2c3e50;
+        }
+        .clear-data-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .clear-data-btn:hover {
+            background: #c0392b;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Madkasse - Med historik</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('current')">📅 Nuværende uge</button>
+            <button class="tab-btn" onclick="switchTab('signup')">✍️ Tilmeld næste uge</button>
+            <button class="tab-btn" onclick="switchTab('history')">📜 Historik</button>
+            <button class="tab-btn" onclick="switchTab('settings')">⚙️ Indstillinger</button>
+        </div>
+
+        <!-- NUVÆRENDE UGE -->
+        <div id="tab-current" class="tab-content active">
+            <h2>Aktuel uge</h2>
+
+            <div class="week-selector">
+                <label for="weekStart">Uge starter:</label>
+                <input type="date" id="weekStart">
+                <select id="weekSelect" onchange="loadWeek(this.value)">
+                    <option value="">Vælg eksisterende uge...</option>
+                </select>
+            </div>
+
+            <button class="add-shopping-btn" onclick="addShoppingEntry()">➕ Tilføj indkøb</button>
+
+            <div id="shoppingContainer"></div>
+
+            <div style="margin-top: 30px;">
+                <h3>📅 Hvem spiste med i ugen?</h3>
+                <p style="color: #7f8c8d; font-style: italic;">Sæt flueben for hver dag hver person deltog</p>
+                <div class="person-list" id="weeklyEaters"></div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculateBalances()">💰 Beregn balancer</button>
+            <button class="invoice-btn" onclick="generateInvoice()">📄 Generér regning</button>
+            <button class="save-signup-btn" onclick="saveCurrentWeek()" style="background: #27ae60; margin-top: 15px;">💾 Gem uge</button>
+
+            <div class="summary" id="summary" style="display: none;">
+                <h2>💵 Status</h2>
+                <div id="balanceList"></div>
+            </div>
+
+            <div class="invoice" id="invoice" style="display: none;">
+                <h2>📋 Regning - Madkasse</h2>
+                <p><strong>Uge:</strong> <span id="invoiceWeek"></span></p>
+                <p><strong>Dato:</strong> <span id="invoiceDate"></span></p>
+
+                <h3>Indkøb i ugen:</h3>
+                <div id="invoiceShopping"></div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Person</th>
+                            <th>Har handlet for</th>
+                            <th>Dage spist</th>
+                            <th>Har spist for</th>
+                            <th>Skylder/Får tilbage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TILMELD NÆSTE UGE -->
+        <div id="tab-signup" class="tab-content">
+            <h2>✍️ Tilmelding næste uge</h2>
+            <div class="alert alert-info">
+                💡 Meld her ind hvor mange dage du forventer at spise med i den kommende uge. 
+                Dette hjælper med at planlægge indkøb.
+            </div>
+
+            <div class="week-selector">
+                <label for="nextWeekStart">Næste uge starter:</label>
+                <input type="date" id="nextWeekStart">
+            </div>
+
+            <div class="signup-section">
+                <h3>📋 Hvor mange dage forventer du at spise med?</h3>
+                <div id="signupContainer"></div>
+                <button class="save-signup-btn" onclick="saveSignup()">💾 Gem tilmelding</button>
+            </div>
+
+            <div id="signupSummary" style="margin-top: 20px;"></div>
+        </div>
+
+        <!-- HISTORIK -->
+        <div id="tab-history" class="tab-content">
+            <h2>📜 Historik over uger</h2>
+            <div id="historyContainer">
+                <p style="color: #7f8c8d; font-style: italic;">Ingen uger gemt endnu.</p>
+            </div>
+        </div>
+
+        <!-- INDTILLINGER -->
+        <div id="tab-settings" class="tab-content">
+            <h2>⚙️ Indstillinger</h2>
+
+            <div class="signup-section" style="background: #ebf5fb; border-color: #3498db;">
+                <h3>👥 Deltagere</h3>
+                <p>Redigér jeres navne her (separeret med komma):</p>
+                <textarea class="notes-input" id="peopleInput"></textarea>
+                <button class="save-signup-btn" onclick="savePeople()" style="background: #3498db;">💾 Gem deltagere</button>
+            </div>
+
+            <div class="signup-section" style="background: #fdedec; border-color: #e74c3c; margin-top: 20px;">
+                <h3>🗑️ Nulstil data</h3>
+                <p>Advarsel: Dette sletter alle gemte uger og tilmeldinger!</p>
+                <button class="clear-data-btn" onclick="clearAllData()">🗑️ Slet alt data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Standard deltagere
+        let people = ["Rasmus", "Kollega 1", "Kollega 2", "Kollega 3", "Kollega 4"];
+
+        // Indlæs fra localStorage
+        function loadPeople() {
+            const saved = localStorage.getItem('madkasse_people');
+            if (saved) {
+                people = JSON.parse(saved);
+            }
+            document.getElementById('peopleInput').value = people.join(', ');
+        }
+
+        const weekdays = ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag"];
+        let shoppingCount = 0;
+        let currentWeekData = null;
+
+        // Sæt standard dato til denne mandag
+        function getMonday(d) {
+            d = new Date(d);
+            var day = d.getDay(),
+                diff = d.getDate() - day + (day == 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return d.getUTCFullYear() + "-U" + weekNo;
+        }
+
+        const today = new Date();
+        const monday = getMonday(today);
+        document.getElementById('weekStart').value = monday.toISOString().split('T')[0];
+        document.getElementById('nextWeekStart').value = new Date(monday.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        // Switch tab
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            if (tabName === 'history') {
+                renderHistory();
+            }
+            if (tabName === 'signup') {
+                renderSignup();
+            }
+            if (tabName === 'settings') {
+                loadPeople();
+            }
+        }
+
+        // Generér ugentlig deltagerliste
+        function renderWeeklyEaters() {
+            const container = document.getElementById('weeklyEaters');
+            let html = '';
+
+            people.forEach(person => {
+                let daysHtml = '';
+                weekdays.forEach((day, index) => {
+                    const checked = currentWeekData && currentWeekData.eaters && currentWeekData.eaters[person] && currentWeekData.eaters[person].includes(day) ? 'checked' : '';
+                    daysHtml += `
+                        <label class="person-checkbox" style="display: inline-flex; margin-right: 5px;">
+                            <input type="checkbox" name="weekly_eater_${person}" value="${day}" data-person="${person}" ${checked}>
+                            ${day.charAt(0)}
+                        </label>
+                    `;
+                });
+
+                html += `
+                    <div class="person-checkbox" style="display: block; padding: 15px;">
+                        <div style="margin-bottom: 10px;"><strong>${person}</strong></div>
+                        <div>${daysHtml}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Tilføj indkøbsfelt
+        function addShoppingEntry(data = null) {
+            shoppingCount++;
+            const container = document.getElementById('shoppingContainer');
+            const buyerValue = data ? data.buyer : '';
+            const amountValue = data ? data.amount : '';
+            const dateValue = data ? data.date : document.getElementById('weekStart').value;
+            const notesValue = data ? data.notes : '';
+
+            const shoppingHtml = `
+                <div class="shopping-entry" id="shopping_${shoppingCount}">
+                    <h3>🛒 Indkøb #${shoppingCount} 
+                        <button class="delete-btn" onclick="removeShopping(${shoppingCount})">✕ Fjern</button>
+                    </h3>
+
+                    <label><strong>Hvem handlede ind?</strong></label>
+                    <select class="amount-input" id="buyer_${shoppingCount}">
+                        <option value="">-- Vælg person --</option>
+                        ${people.map(p => `<option value="${p}" ${buyerValue === p ? 'selected' : ''}>${p}</option>`).join('')}
+                    </select>
+
+                    <label><strong>Beløb (kr):</strong></label>
+                    <input type="number" class="amount-input" id="amount_${shoppingCount}" placeholder="0.00" step="0.01" min="0" value="${amountValue}">
+
+                    <label><strong>Dato for indkøb:</strong></label>
+                    <input type="date" class="amount-input" id="date_${shoppingCount}" value="${dateValue}">
+
+                    <label><strong>Notater (hvad blev købt):</strong></label>
+                    <textarea class="notes-input" id="notes_${shoppingCount}" placeholder="F.eks. 'Pasta, kødsovs, salat, brød, pålæg...'">${notesValue}</textarea>
+                </div>
+            `;
+
+            container.innerHTML += shoppingHtml;
+        }
+
+        // Fjern indkøbsfelt
+        function removeShopping(id) {
+            const entry = document.getElementById(`shopping_${id}`);
+            if (entry) {
+                entry.remove();
+            }
+        }
+
+        // Beregn balancer
+        function calculateBalances() {
+            const balances = {};
+            const spent = {};
+            const daysEaten = {};
+            const consumed = {};
+
+            people.forEach(person => {
+                balances[person] = 0;
+                spent[person] = 0;
+                daysEaten[person] = 0;
+                consumed[person] = 0;
+            });
+
+            // Tæl dage hver person har spist
+            people.forEach(person => {
+                const checkboxes = document.querySelectorAll(`input[name="weekly_eater_${person}"]:checked`);
+                daysEaten[person] = checkboxes.length;
+            });
+
+            // Find total beløb og total antal dage
+            let totalSpent = 0;
+            let totalDays = 0;
+
+            for (let i = 1; i <= shoppingCount; i++) {
+                const buyer = document.getElementById(`buyer_${i}`)?.value;
+                const amount = parseFloat(document.getElementById(`amount_${i}`)?.value) || 0;
+
+                if (buyer && amount > 0) {
+                    totalSpent += amount;
+                    spent[buyer] += amount;
+                    balances[buyer] += amount;
+                }
+            }
+
+            people.forEach(person => {
+                totalDays += daysEaten[person];
+            });
+
+            // Beregn pris per dag
+            const pricePerDay = totalDays > 0 ? totalSpent / totalDays : 0;
+
+            // Træk fra for hver dag person har spist
+            people.forEach(person => {
+                const cost = daysEaten[person] * pricePerDay;
+                consumed[person] = cost;
+                balances[person] -= cost;
+            });
+
+            // Vis resultat
+            const summary = document.getElementById('summary');
+            const balanceList = document.getElementById('balanceList');
+            summary.style.display = 'block';
+
+            let html = '';
+            people.forEach(person => {
+                const balance = balances[person];
+                const status = balance >= 0 ? 'Får tilbage' : 'Skylder';
+                const className = balance >= 0 ? 'positive' : 'negative';
+                html += `
+                    <div class="person-balance">
+                        <span>
+                            <strong>${person}</strong><br>
+                            <small style="color: #7f8c8d;">${daysEaten[person]} dage × ${pricePerDay.toFixed(2)} kr/dag = ${consumed[person].toFixed(2)} kr</small>
+                        </span>
+                        <span class="${className}">${Math.abs(balance).toFixed(2)} kr ${status}</span>
+                    </div>
+                `;
+            });
+
+            balanceList.innerHTML = html;
+
+            // Gem data til regning
+            window.balances = balances;
+            window.spent = spent;
+            window.consumed = consumed;
+            window.daysEaten = daysEaten;
+            window.pricePerDay = pricePerDay;
+            window.totalSpent = totalSpent;
+
+            return { balances, spent, consumed, daysEaten, pricePerDay, totalSpent };
+        }
+
+        // Generér regning
+        function generateInvoice() {
+            const result = calculateBalances();
+
+            const weekStart = new Date(document.getElementById('weekStart').value);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 4);
+
+            document.getElementById('invoiceWeek').textContent = 
+                `${weekStart.toLocaleDateString('da-DK')} - ${weekEnd.toLocaleDateString('da-DK')}`;
+            document.getElementById('invoiceDate').textContent = new Date().toLocaleDateString('da-DK');
+
+            // Vis indkøb
+            let shoppingHtml = '<div class="shopping-list">';
+            for (let i = 1; i <= shoppingCount; i++) {
+                const buyer = document.getElementById(`buyer_${i}`)?.value;
+                const amount = parseFloat(document.getElementById(`amount_${i}`)?.value) || 0;
+                const notes = document.getElementById(`notes_${i}`)?.value || 'Ingen notater';
+                const date = document.getElementById(`date_${i}`)?.value;
+
+                if (buyer && amount > 0) {
+                    shoppingHtml += `
+                        <div class="shopping-item">
+                            <strong>${date ? new Date(date).toLocaleDateString('da-DK') : 'Ukendt'}:</strong> 
+                            ${buyer} handlede for <strong>${amount.toFixed(2)} kr</strong><br>
+                            <small>${notes}</small>
+                        </div>
+                    `;
+                }
+            }
+            shoppingHtml += `</div><p><strong>Totalt brugt:</strong> ${window.totalSpent.toFixed(2)} kr</p>`;
+            document.getElementById('invoiceShopping').innerHTML = shoppingHtml;
+
+            // Generér tabel
+            const tbody = document.getElementById('invoiceBody');
+            let html = '';
+
+            people.forEach(person => {
+                const spentAmount = window.spent[person] || 0;
+                const consumedAmount = window.consumed[person] || 0;
+                const balance = window.balances[person] || 0;
+                const days = window.daysEaten[person] || 0;
+                const status = balance >= 0 ? 'Får tilbage' : 'Skylder';
+                const className = balance >= 0 ? 'positive' : 'negative';
+
+                html += `
+                    <tr>
+                        <td><strong>${person}</strong></td>
+                        <td>${spentAmount.toFixed(2)} kr</td>
+                        <td>${days} dage</td>
+                        <td>${consumedAmount.toFixed(2)} kr</td>
+                        <td class="${className}">${Math.abs(balance).toFixed(2)} kr (${status})</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('invoice').style.display = 'block';
+            document.getElementById('invoice').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Gem nuværende uge
+        function saveCurrentWeek() {
+            const weekStart = document.getElementById('weekStart').value;
+            const weekKey = 'week_' + weekStart;
+
+            // Indsaml indkøb
+            const shopping = [];
+            for (let i = 1; i <= shoppingCount; i++) {
+                const buyer = document.getElementById(`buyer_${i}`)?.value;
+                const amount = parseFloat(document.getElementById(`amount_${i}`)?.value) || 0;
+                const date = document.getElementById(`date_${i}`)?.value;
+                const notes = document.getElementById(`notes_${i}`)?.value || '';
+
+                if (buyer && amount > 0) {
+                    shopping.push({ buyer, amount, date, notes });
+                }
+            }
+
+            // Indsaml hvem der spiste
+            const eaters = {};
+            people.forEach(person => {
+                const checkboxes = document.querySelectorAll(`input[name="weekly_eater_${person}"]:checked`);
+                eaters[person] = Array.from(checkboxes).map(cb => cb.value);
+            });
+
+            // Beregn resultater
+            const result = calculateBalances();
+
+            // Gem data
+            const weekData = {
+                weekStart,
+                shopping,
+                eaters,
+                balances: result.balances,
+                spent: result.spent,
+                consumed: result.consumed,
+                daysEaten: result.daysEaten,
+                totalSpent: result.totalSpent,
+                savedAt: new Date().toISOString()
+            };
+
+            localStorage.setItem(weekKey, JSON.stringify(weekData));
+
+            // Opdater ugeliste
+            updateWeekSelect();
+
+            alert('✅ Uge gemt!');
+        }
+
+        // Opdater uge-vælger
+        function updateWeekSelect() {
+            const select = document.getElementById('weekSelect');
+            select.innerHTML = '<option value="">Vælg eksisterende uge...</option>';
+
+            const weeks = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('week_')) {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    weeks.push({ key, date: data.weekStart });
+                }
+            }
+
+            weeks.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            weeks.forEach(week => {
+                const date = new Date(week.date);
+                const weekNum = getWeekNumber(date);
+                const option = document.createElement('option');
+                option.value = week.key;
+                option.textContent = `${weekNum} - Starter ${date.toLocaleDateString('da-DK')}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Indlæs uge
+        function loadWeek(weekKey) {
+            if (!weekKey) return;
+
+            const data = JSON.parse(localStorage.getItem(weekKey));
+            if (!data) return;
+
+            document.getElementById('weekStart').value = data.weekStart;
+
+            // Ryd og tilføj indkøb
+            document.getElementById('shoppingContainer').innerHTML = '';
+            shoppingCount = 0;
+            data.shopping.forEach(item => {
+                addShoppingEntry(item);
+            });
+
+            // Indsaml eaters
+            currentWeekData = data;
+            renderWeeklyEaters();
+
+            alert('✅ Uge indlæst!');
+        }
+
+        // Render signup
+        function renderSignup() {
+            const nextWeekStart = document.getElementById('nextWeekStart').value;
+            const signupKey = 'signup_' + nextWeekStart;
+            const savedSignup = localStorage.getItem(signupKey);
+            const savedData = savedSignup ? JSON.parse(savedSignup) : {};
+
+            const container = document.getElementById('signupContainer');
+            let html = '';
+
+            people.forEach(person => {
+                const savedDays = savedData[person] || [];
+                let daysHtml = '';
+
+                weekdays.forEach(day => {
+                    const checked = savedDays.includes(day) ? 'checked' : '';
+                    daysHtml += `
+                        <label>
+                            <input type="checkbox" name="signup_${person}" value="${day}" ${checked}>
+                            ${day}
+                        </label>
+                    `;
+                });
+
+                html += `
+                    <div class="signup-person">
+                        <label>${person}</label>
+                        <div class="signup-days">
+                            ${daysHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Vis opsummering
+            renderSignupSummary(savedData);
+        }
+
+        // Render signup summary
+        function renderSignupSummary(data) {
+            const container = document.getElementById('signupSummary');
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Ingen tilmeldinger endnu.</p>';
+                return;
+            }
+
+            let html = '<h3>📊 Oversigt over tilmeldinger:</h3><div class="history-summary">';
+
+            people.forEach(person => {
+                const days = data[person] || [];
+                html += `
+                    <div class="history-person">
+                        <strong>${person}:</strong> ${days.length} dage<br>
+                        <small>${days.join(', ') || 'Ikke tilmeldt'}</small>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Gem signup
+        function saveSignup() {
+            const nextWeekStart = document.getElementById('nextWeekStart').value;
+            const signupKey = 'signup_' + nextWeekStart;
+
+            const signup = {};
+            people.forEach(person => {
+                const checkboxes = document.querySelectorAll(`input[name="signup_${person}"]:checked`);
+                signup[person] = Array.from(checkboxes).map(cb => cb.value);
+            });
+
+            localStorage.setItem(signupKey, JSON.stringify(signup));
+            renderSignupSummary(signup);
+
+            alert('✅ Tilmelding gemt!');
+        }
+
+        // Render historik
+        function renderHistory() {
+            const container = document.getElementById('historyContainer');
+
+            const weeks = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('week_')) {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    weeks.push(data);
+                }
+            }
+
+            weeks.sort((a, b) => new Date(b.weekStart) - new Date(a.weekStart));
+
+            if (weeks.length === 0) {
+                container.innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Ingen uger gemt endnu.</p>';
+                return;
+            }
+
+            let html = '';
+            weeks.forEach(week => {
+                const weekStart = new Date(week.weekStart);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 4);
+                const weekNum = getWeekNumber(weekStart);
+
+                html += `
+                    <div class="history-week">
+                        <h4>📅 ${weekNum} (${weekStart.toLocaleDateString('da-DK')} - ${weekEnd.toLocaleDateString('da-DK')})</h4>
+                        <p><strong>Totalt brugt:</strong> ${week.totalSpent.toFixed(2)} kr</p>
+                        <p><strong>Gemt:</strong> ${new Date(week.savedAt).toLocaleString('da-DK')}</p>
+                        <div class="history-summary">
+                `;
+
+                people.forEach(person => {
+                    const days = week.daysEaten[person] || 0;
+                    const balance = week.balances[person] || 0;
+                    const status = balance >= 0 ? '✅ Får tilbage' : '❌ Skylder';
+                    const className = balance >= 0 ? 'positive' : 'negative';
+
+                    html += `
+                        <div class="history-person">
+                            <strong>${person}:</strong> ${days} dage<br>
+                            <span class="${className}">${Math.abs(balance).toFixed(2)} kr ${status}</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                        <button class="delete-btn" onclick="deleteWeek('${week.weekStart}')" style="margin-top: 15px; padding: 8px 15px; font-size: 14px;">🗑️ Slet denne uge</button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Slet uge
+        function deleteWeek(weekStart) {
+            if (confirm('Er du sikker på du vil slette ugen ' + weekStart + '?')) {
+                localStorage.removeItem('week_' + weekStart);
+                renderHistory();
+                updateWeekSelect();
+                alert('✅ Uge slettet!');
+            }
+        }
+
+        // Gem people
+        function savePeople() {
+            const input = document.getElementById('peopleInput').value;
+            people = input.split(',').map(p => p.trim()).filter(p => p.length > 0);
+            localStorage.setItem('madkasse_people', JSON.stringify(people));
+            alert('✅ Deltagere gemt! Genindlæs siden for at se ændringer.');
+        }
+
+        // Ryd alt data
+        function clearAllData() {
+            if (confirm('⚠️ ER DU SIKKER? Dette sletter ALLE gemte uger og tilmeldinger!')) {
+                if (confirm('Virkelig sikker? Dette kan ikke fortrydes.')) {
+                    localStorage.clear();
+                    alert('✅ Alt data slettet. Siden genindlæses.');
+                    location.reload();
+                }
+            }
+        }
+
+        // Init
+        loadPeople();
+        updateWeekSelect();
+        renderWeeklyEaters();
+    </script>
+</body>
+</html>
