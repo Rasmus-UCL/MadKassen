@@ -335,6 +335,9 @@
             margin-top: 0;
             border-bottom: 1px solid #3498db;
             padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .history-summary {
             display: grid;
@@ -380,6 +383,11 @@
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
         .week-info {
             background: #e8f8f5;
             border: 2px solid #27ae60;
@@ -398,11 +406,151 @@
         .week-info li {
             margin: 5px 0;
         }
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .calendar-table th, .calendar-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        .calendar-table th {
+            background: #34495e;
+            color: white;
+        }
+        .calendar-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .calendar-yes {
+            background: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+        .calendar-no {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-open {
+            background: #27ae60;
+            color: white;
+        }
+        .status-closed {
+            background: #e74c3c;
+            color: white;
+        }
+        .edit-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .edit-btn:hover {
+            background: #2980b9;
+        }
+        .edit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .close-modal {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .login-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        .login-btn:hover {
+            background: #2980b9;
+        }
+        .admin-indicator {
+            background: #f39c12;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .admin-indicator.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🍽️ Madkasse - Med historik</h1>
+        <h1>🍽️ Madkasse</h1>
+
+        <div class="admin-indicator" id="adminIndicator">
+            👑 Admin-tilstand: Du kan redigere alle uger
+        </div>
 
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('current')">📅 Nuværende uge</button>
@@ -413,7 +561,11 @@
 
         <!-- NUVÆRENDE UGE -->
         <div id="tab-current" class="tab-content active">
-            <h2>Aktuel uge</h2>
+            <h2>📅 Nuværende uge</h2>
+            <div class="alert alert-info">
+                💡 Her registrerer I hvem der handlede ind og hvem der spiste med i den aktuelle uge.
+                Tilmeldinger fra "Næste uge" vises automatisk som forslag.
+            </div>
 
             <div class="week-selector">
                 <label for="weekStart">Uge starter:</label>
@@ -431,7 +583,7 @@
 
             <div style="margin-top: 30px;">
                 <h3>📅 Hvem spiste med i ugen?</h3>
-                <p style="color: #7f8c8d; font-style: italic;">Sæt flueben for hver dag hver person deltog</p>
+                <p style="color: #7f8c8d; font-style: italic;">Grønne = tilmeldt fra næste uge. Ret gerne hvis planer ændres.</p>
                 <div class="person-list" id="weeklyEaters"></div>
             </div>
 
@@ -464,15 +616,17 @@
                     </thead>
                     <tbody id="invoiceBody"></tbody>
                 </table>
+
+                <button class="invoice-btn" onclick="closeWeek()" style="background: #e74c3c; margin-top: 20px;">🔒 Afslut og lås uge</button>
             </div>
         </div>
 
         <!-- TILMELD NÆSTE UGE -->
         <div id="tab-signup" class="tab-content">
-            <h2>✍️ Tilmelding næste uge</h2>
+            <h2>✍️ Tilmeld næste uge</h2>
             <div class="alert alert-info">
-                💡 Meld her ind hvor mange dage du forventer at spise med i den kommende uge. 
-                Dette hjælper med at planlægge indkøb.
+                💡 Meld her ind hvilke dage du forventer at spise med i næste uge.
+                Dette vises automatisk som forslag i "Nuværende uge" når ugen starter.
             </div>
 
             <div class="week-selector">
@@ -481,7 +635,7 @@
             </div>
 
             <div class="signup-section">
-                <h3>📋 Hvor mange dage forventer du at spise med?</h3>
+                <h3>📋 Hvilke dage forventer du at spise med?</h3>
                 <div id="signupContainer"></div>
                 <button class="save-signup-btn" onclick="saveSignup()">💾 Gem tilmelding</button>
             </div>
@@ -491,7 +645,10 @@
 
         <!-- HISTORIK -->
         <div id="tab-history" class="tab-content">
-            <h2>📜 Historik over uger</h2>
+            <h2>📜 Historik - Kalender</h2>
+            <div class="alert alert-info">
+                📅 Oversigt over alle tidligere uger. Åbne uger kan redigeres. Lukkede uger kræver admin.
+            </div>
             <div id="historyContainer">
                 <p style="color: #7f8c8d; font-style: italic;">Ingen uger gemt endnu.</p>
             </div>
@@ -509,6 +666,13 @@
             </div>
 
             <div class="signup-section" style="background: #fdedec; border-color: #e74c3c; margin-top: 20px;">
+                <h3>🔐 Admin-login</h3>
+                <p>Log ind som admin for at redigere lukkede uger.</p>
+                <button class="edit-btn" onclick="showLoginModal()" style="background: #e74c3c;">🔑 Log ind som admin</button>
+                <button class="clear-data-btn" onclick="logoutAdmin()" style="margin-top: 10px;">🔓 Log ud</button>
+            </div>
+
+            <div class="signup-section" style="background: #fdedec; border-color: #e74c3c; margin-top: 20px;">
                 <h3>🗑️ Nulstil data</h3>
                 <p>Advarsel: Dette sletter alle gemte uger og tilmeldinger!</p>
                 <button class="clear-data-btn" onclick="clearAllData()">🗑️ Slet alt data</button>
@@ -516,9 +680,32 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔐 Admin-login</h3>
+                <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Brugernavn:</label>
+                <input type="text" id="adminUser" placeholder="Indtast brugernavn">
+            </div>
+            <div class="form-group">
+                <label>Adgangskode:</label>
+                <input type="password" id="adminPass" placeholder="Indtast adgangskode">
+            </div>
+            <button class="login-btn" onclick="loginAdmin()">Log ind</button>
+            <p id="loginError" style="color: #e74c3c; margin-top: 15px; display: none;">❌ Forkert brugernavn eller adgangskode</p>
+        </div>
+    </div>
+
     <script>
         // Standard deltagere
         let people = ["Rasmus", "Kollega 1", "Kollega 2", "Kollega 3", "Kollega 4"];
+
+        // Admin state
+        let isAdmin = false;
 
         // Indlæs fra localStorage
         function loadPeople() {
@@ -593,7 +780,7 @@
                 // Ugen findes - indlæs den
                 loadWeek(weekKey, false);
             } else {
-                // Ny uge - ryd alt
+                // Ny uge - ryd alt og vis tilmeldinger
                 clearCurrentWeek();
             }
         }
@@ -625,12 +812,32 @@
             const container = document.getElementById('weeklyEaters');
             let html = '';
 
+            // Hent tilmeldinger for næste uge
+            const nextWeekStart = document.getElementById('nextWeekStart').value;
+            const signupKey = 'signup_' + nextWeekStart;
+            const savedSignup = localStorage.getItem(signupKey);
+            const signupData = savedSignup ? JSON.parse(savedSignup) : {};
+
             people.forEach(person => {
                 let daysHtml = '';
                 weekdays.forEach((day, index) => {
-                    const checked = currentWeekData && currentWeekData.eaters && currentWeekData.eaters[person] && currentWeekData.eaters[person].includes(day) ? 'checked' : '';
+                    // Tjek om ugen er gemt
+                    let checked = '';
+                    let isSignup = false;
+
+                    if (currentWeekData && currentWeekData.eaters && currentWeekData.eaters[person] && currentWeekData.eaters[person].includes(day)) {
+                        checked = 'checked';
+                    }
+                    // Ellers tjek om der er tilmelding for denne dag
+                    else if (signupData[person] && signupData[person].includes(day)) {
+                        checked = 'checked';
+                        isSignup = true;
+                    }
+
+                    const bgStyle = isSignup && !checked ? 'style="background: #d4edda;"' : '';
+
                     daysHtml += `
-                        <label class="person-checkbox" style="display: inline-flex; margin-right: 5px;">
+                        <label class="person-checkbox" style="display: inline-flex; margin-right: 5px;" ${bgStyle}>
                             <input type="checkbox" name="weekly_eater_${person}" value="${day}" data-person="${person}" ${checked}>
                             ${day.charAt(0)}
                         </label>
@@ -863,6 +1070,10 @@
             // Beregn resultater
             const result = calculateBalances();
 
+            // Tjek om ugen allerede er lukket
+            const existingData = localStorage.getItem(weekKey);
+            const isClosed = existingData && JSON.parse(existingData).isClosed;
+
             // Gem data
             const weekData = {
                 weekStart,
@@ -873,6 +1084,7 @@
                 consumed: result.consumed,
                 daysEaten: result.daysEaten,
                 totalSpent: result.totalSpent,
+                isClosed: isClosed || false,
                 savedAt: new Date().toISOString()
             };
 
@@ -885,6 +1097,26 @@
             showWeekInfo(weekData);
 
             alert('✅ Uge gemt!');
+        }
+
+        // Luk uge
+        function closeWeek() {
+            const weekStart = document.getElementById('weekStart').value;
+            const weekKey = 'week_' + weekStart;
+
+            const existingData = localStorage.getItem(weekKey);
+            if (!existingData) {
+                alert('❌ Gem ugen først!');
+                return;
+            }
+
+            const weekData = JSON.parse(existingData);
+            weekData.isClosed = true;
+            weekData.closedAt = new Date().toISOString();
+            localStorage.setItem(weekKey, JSON.stringify(weekData));
+
+            alert('✅ Uge er nu lukket og låst!');
+            renderHistory();
         }
 
         // Opdater uge-vælger
@@ -1049,37 +1281,117 @@
                 const weekEnd = new Date(weekStart);
                 weekEnd.setDate(weekEnd.getDate() + 4);
                 const weekNum = getWeekNumber(weekStart);
+                const isClosed = week.isClosed || false;
+                const statusBadge = isClosed ? 
+                    '<span class="status-badge status-closed">🔒 Lukket</span>' : 
+                    '<span class="status-badge status-open">🟢 Åben</span>';
+                const editBtn = (!isClosed || isAdmin) ? 
+                    `<button class="edit-btn" onclick="editWeek('${week.weekStart}')">✏️ Redigér</button>` : 
+                    `<button class="edit-btn" disabled title="Kun admin kan redigere lukkede uger">🔒 Låst</button>`;
 
                 html += `
                     <div class="history-week">
-                        <h4>📅 ${weekNum} (${weekStart.toLocaleDateString('da-DK')} - ${weekEnd.toLocaleDateString('da-DK')})</h4>
+                        <h4>
+                            📅 ${weekNum} (${weekStart.toLocaleDateString('da-DK')} - ${weekEnd.toLocaleDateString('da-DK')})
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                ${statusBadge}
+                                ${editBtn}
+                            </div>
+                        </h4>
                         <p><strong>Totalt brugt:</strong> ${week.totalSpent.toFixed(2)} kr</p>
-                        <p><strong>Gemt:</strong> ${new Date(week.savedAt).toLocaleString('da-DK')}</p>
-                        <div class="history-summary">
+
+                        <table class="calendar-table">
+                            <thead>
+                                <tr>
+                                    <th>Person</th>
+                                    ${weekdays.map(day => `<th>${day.charAt(0)}</th>`).join('')}
+                                    <th>I alt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                 `;
 
                 people.forEach(person => {
-                    const days = week.daysEaten[person] || 0;
-                    const balance = week.balances[person] || 0;
-                    const status = balance >= 0 ? '✅ Får tilbage' : '❌ Skylder';
-                    const className = balance >= 0 ? 'positive' : 'negative';
+                    const eaters = week.eaters[person] || [];
+                    const dayCount = eaters.length;
+
+                    let daysHtml = '';
+                    weekdays.forEach(day => {
+                        const hasDay = eaters.includes(day);
+                        const cellClass = hasDay ? 'calendar-yes' : 'calendar-no';
+                        const cellText = hasDay ? '✓' : '–';
+                        daysHtml += `<td class="${cellClass}">${cellText}</td>`;
+                    });
 
                     html += `
-                        <div class="history-person">
-                            <strong>${person}:</strong> ${days} dage<br>
-                            <span class="${className}">${Math.abs(balance).toFixed(2)} kr ${status}</span>
-                        </div>
+                        <tr>
+                            <td style="text-align: left;"><strong>${person}</strong></td>
+                            ${daysHtml}
+                            <td><strong>${dayCount}</strong></td>
+                        </tr>
                     `;
                 });
 
                 html += `
-                        </div>
-                        <button class="delete-btn" onclick="deleteWeek('${week.weekStart}')" style="margin-top: 15px; padding: 8px 15px; font-size: 14px;">🗑️ Slet denne uge</button>
+                            </tbody>
+                        </table>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
+        }
+
+        // Redigér uge
+        function editWeek(weekStart) {
+            const weekKey = 'week_' + weekStart;
+            const data = JSON.parse(localStorage.getItem(weekKey));
+            if (!data) return;
+
+            // Indlæs ugen i "Nuværende uge"
+            switchTab('current');
+            loadWeek(weekKey, false);
+
+            const isClosed = data.isClosed || false;
+            if (isClosed) {
+                alert('⚠️ Du redigerer en LUKKET uge som admin. Husk at gemme!');
+            } else {
+                alert('✅ Uge indlæst til redigering.');
+            }
+        }
+
+        // Login modal
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function loginAdmin() {
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+
+            if (user === 'admin' && pass === 'admin') {
+                isAdmin = true;
+                document.getElementById('adminIndicator').classList.add('show');
+                closeLoginModal();
+                alert('✅ Logget ind som admin! Du kan nu redigere alle uger.');
+                renderHistory();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            document.getElementById('adminIndicator').classList.remove('show');
+            alert('✅ Logget ud som admin.');
+            renderHistory();
         }
 
         // Slet uge
@@ -1115,6 +1427,14 @@
         loadPeople();
         updateWeekSelect();
         renderWeeklyEaters();
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('loginModal');
+            if (event.target === modal) {
+                closeLoginModal();
+            }
+        }
     </script>
 </body>
 </html>
